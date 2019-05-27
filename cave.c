@@ -106,75 +106,6 @@ void readmouse()
     mousy = 0;
 }
 
-//------------------------ Simple PNG OUT code begins ------------------------
-FILE *pngofil;
-long pngoxplc, pngoyplc, pngoxsiz, pngoysiz;
-unsigned long pngocrc, pngoadcrc;
-
-long bswap (long);
-#pragma aux bswap =\
-	".586" "bswap eax"\
-	parm [eax] modify nomemory exact [eax] value [eax]
-
-long crctab32[256];  //SEE CRC32.C
-#define updatecrc32(c,crc) crc=(crctab32[(crc^c)&255]^(((unsigned)crc)>>8))
-#define updateadl32(c,crc) \
-{  c += (crc&0xffff); if (c   >= 65521) c   -= 65521; \
-	crc = (crc>>16)+c; if (crc >= 65521) crc -= 65521; \
-	crc = (crc<<16)+c; \
-} \
-
-void fputbytes (unsigned long v, long n)
-	{ for(;n;v>>=8,n--) { fputc(v,pngofil); updatecrc32(v,pngocrc); } }
-
-void pngoutopenfile (char *fnam, long xsiz, long ysiz)
-{
-	long i, j, k;
-	char a[40];
-
-	pngoxsiz = xsiz; pngoysiz = ysiz; pngoxplc = pngoyplc = 0;
-	for(i=255;i>=0;i--)
-	{
-		k = i; for(j=8;j;j--) k = ((unsigned long)k>>1)^((-(k&1))&0xedb88320);
-		crctab32[i] = k;
-	}
-	pngofil = fopen(fnam,"wb");
-	*(long *)&a[0] = 0x474e5089; *(long *)&a[4] = 0x0a1a0a0d;
-	*(long *)&a[8] = 0x0d000000; *(long *)&a[12] = 0x52444849;
-	*(long *)&a[16] = bswap(xsiz); *(long *)&a[20] = bswap(ysiz);
-	*(long *)&a[24] = 0x00000208; *(long *)&a[28] = 0;
-	for(i=12,j=-1;i<29;i++) updatecrc32(a[i],j);
-	*(long *)&a[29] = bswap(j^-1);
-	fwrite(a,37,1,pngofil);
-	pngocrc = -1; pngoadcrc = 1;
-	fputbytes(0x54414449,4); fputbytes(0x0178,2);
-}
-
-void pngoutputpixel (long rgbcol)
-{
-	long a[4];
-
-	if (!pngoxplc)
-	{
-		fputbytes(pngoyplc==pngoysiz-1,1);
-		fputbytes(((pngoxsiz*3+1)*0x10001)^0xffff0000,4);
-		fputbytes(0,1); a[0] = 0; updateadl32(a[0],pngoadcrc);
-	}
-	fputbytes(bswap(rgbcol<<8),3);
-	a[0] = (rgbcol>>16)&255; updateadl32(a[0],pngoadcrc);
-	a[0] = (rgbcol>> 8)&255; updateadl32(a[0],pngoadcrc);
-	a[0] = (rgbcol    )&255; updateadl32(a[0],pngoadcrc);
-	pngoxplc++; if (pngoxplc < pngoxsiz) return;
-	pngoxplc = 0; pngoyplc++; if (pngoyplc < pngoysiz) return;
-	fputbytes(bswap(pngoadcrc),4);
-	a[0] = bswap(pngocrc^-1); a[1] = 0; a[2] = 0x444e4549; a[3] = 0x826042ae;
-	fwrite(a,1,16,pngofil);
-	a[0] = bswap(ftell(pngofil)-(33+8)-16);
-	fseek(pngofil,33,SEEK_SET); fwrite(a,1,4,pngofil);
-	fclose(pngofil);
-}
-//------------------------- Simple PNG OUT code ends -------------------------
-
 void main ()
 {
 	char blastcol;
@@ -213,24 +144,6 @@ void main ()
 			if (pixs == 4) showscreen4pix320400();
 			if (pixs == 2) showscreen2pix320400();
 			if (pixs == 1) showscreen1pix320400();
-		}
-
-		if (keystatus[0x58]) //F12
-		{
-			long x, y, xx, yy;
-			xx = 320/pixs; yy = (vidmode+1)*200;
-			if (pixs == 1) j = (vidmode+1)*16000;
-			if (pixs == 2) j = (vidmode+1)*8000;
-			if (pixs == 4) j = (vidmode+1)*4000;
-			pngoutopenfile("x.png",xx,yy);
-			for(y=0;y<yy;y++)
-				for(x=0;x<320;x+=pixs)
-				{
-					i = ((long)scrbuf[y*80+(x>>2)+(x&3)*j])*3;
-					pngoutputpixel((((long)palette[i  ])<<18)+
-										(((long)palette[i+1])<<10)+
-										(((long)palette[i+2])<< 2));
-				}
 		}
 
 		if (vidmode == 0)
