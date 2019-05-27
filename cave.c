@@ -169,51 +169,48 @@ long ksqrt(long num)
 	return root;
 }
 
-void blast (long gridx, long gridy, long rad, char blastingcol)
+void blast(long gridx, long gridy, long rad, char blastingcol)
 {
 	short tempshort;
 	long i, j, dax, day, daz, dasqr, templong;
 
-	templong = rad+2;
-	for(i=-templong;i<=templong;i++)
-		for(j=-templong;j<=templong;j++)
-		{
-			dax = ((gridx+i+256)&255);
-			day = ((gridy+j+256)&255);
-			dasqr = rad*rad-(i*i+j*j);
+	templong = rad + 2;
+	for (i = -templong; i <= templong; ++i)
+		for (j = -templong; j <= templong; ++j) {
+			dax = (gridx + i + 256) & 255;
+			day = (gridy + j + 256) & 255;
+			dasqr = rad * rad - (i * i + j * j);
 
 			if (dasqr >= 0)
-				daz = (ksqrt(dasqr)<<1);
+				daz = ksqrt(dasqr) << 1;
 			else
-				daz = -(ksqrt(-dasqr)<<1);
+				daz = -(ksqrt(-dasqr) << 1);
 
-			if ((posz>>12)-daz < h1[(dax<<8)+day])
-			{
-				h1[(dax<<8)+day] = (posz>>12)-daz;
-				if (((posz>>12)-daz) < 0)
-					h1[(dax<<8)+day] = 0;
+			if ((posz >> 12) - daz < h1[(dax << 8) + day]) {
+				h1[(dax << 8) + day] = (posz >> 12) - daz;
+				if ((posz >> 12) - daz < 0)
+					h1[(dax << 8) + day] = 0;
 			}
 
-			if ((posz>>12)+daz > h2[(dax<<8)+day])
-			{
-				h2[(dax<<8)+day] = (posz>>12)+daz;
-				if (((posz>>12)+daz) > 255)
-					h2[(dax<<8)+day] = 255;
+			if ((posz >> 12) + daz > h2[(dax << 8) + day]) {
+				h2[(dax << 8) + day] = (posz >> 12) + daz;
+				if ((posz >> 12) + daz > 255)
+					h2[(dax << 8) + day] = 255;
 			}
 
-			tempshort = h1[(dax<<8)+day];
-			if (tempshort >= h2[(dax<<8)+day]) tempshort = (posz>>12);
-			tempshort = labs(64-(tempshort&127))+(rand()&3)-2;
+			tempshort = h1[(dax << 8) + day];
+			if (tempshort >= h2[(dax << 8)+day]) tempshort = posz >> 12;
+			tempshort = labs(64 - (tempshort & 127)) + (rand() & 3) - 2;
 			if (tempshort < 0) tempshort = 0;
 			if (tempshort > 63) tempshort = 63;
-			c1[(dax<<8)+day] = (char)(tempshort+blastingcol);
+			c1[(dax << 8) + day] = (char)(tempshort + blastingcol);
 
-			tempshort = h2[(dax<<8)+day];
-			if (tempshort <= h1[(dax<<8)+day]) tempshort = (posz>>12);
-			tempshort = labs(64-(tempshort&127))+(rand()&3)-2;
+			tempshort = h2[(dax << 8) + day];
+			if (tempshort <= h1[(dax << 8) + day]) tempshort = (posz >> 12);
+			tempshort = labs(64 - (tempshort & 127)) + (rand() & 3) - 2;
 			if (tempshort < 0) tempshort = 0;
 			if (tempshort > 63) tempshort = 63;
-			c2[(dax<<8)+day] = (char)(tempshort+blastingcol);
+			c2[(dax << 8) + day] = (char)(tempshort + blastingcol);
 		}
 }
 
