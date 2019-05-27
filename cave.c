@@ -23,6 +23,7 @@ char h1[65536], c1[65536];
 char h2[65536], c2[65536];
 short sintable[2048];
 char scrbuf[128000];
+unsigned char scr[320 * 200];
 unsigned short numpalookups;
 unsigned char palookup[MAXPALOOKUPS << 8u];
 uint32_t palette[256];
@@ -58,47 +59,99 @@ long groudiv (long, long);
 	"idiv bx"\
 	parm [eax][ebx] modify [edx]
 
-long drawtopslab (long, long, long);
-#pragma aux drawtopslab =\
-	"shr ecx, 1"\
-	"jnc skipdraw1a"\
-	"mov [edi], al"\
-	"add edi, 80"\
-	"skipdraw1a: shr ecx, 1"\
-	"jnc skipdraw2a"\
-	"mov [edi], al"\
-	"mov [edi+80], al"\
-	"add edi, 160"\
-	"skipdraw2a: jecxz skipdraw4a"\
-	"startdrawa: mov [edi], al"\
-	"mov [edi+80], al"\
-	"mov [edi+160], al"\
-	"mov [edi+240], al"\
-	"add edi, 320"\
-	"loop startdrawa"\
-	"skipdraw4a: mov eax, edi"\
-	parm [edi][ecx][eax] modify [edi ecx eax]
+long drawtopslab(long edi, long ecx, long eax)
+{
+	int al = eax & 0xFF;
+	int carry;
 
-long drawbotslab (long, long, long);
-#pragma aux drawbotslab =\
-	"shr ecx, 1"\
-	"jnc skipdraw1b"\
-	"mov [edi], al"\
-	"sub edi, 80"\
-	"skipdraw1b: shr ecx, 1"\
-	"jnc skipdraw2b"\
-	"mov [edi], al"\
-	"mov [edi-80], al"\
-	"sub edi, 160"\
-	"skipdraw2b: jecxz skipdraw4b"\
-	"startdrawb: mov [edi], al"\
-	"mov [edi-80], al"\
-	"mov [edi-160], al"\
-	"mov [edi-240], al"\
-	"sub edi, 320"\
-	"loop startdrawb"\
-	"skipdraw4b: mov eax, edi"\
-	parm [edi][ecx][eax] modify [edi ecx eax]
+	carry = ecx & 1;
+	ecx >>= 1;
+
+	if (carry == 0)
+		goto skipdraw1a;
+
+	scr[edi] = al;
+
+	edi += 80;
+
+skipdraw1a:
+	carry = ecx & 1;
+	ecx >>= 1;
+
+	if (carry == 0)
+		goto skipdraw2a;
+
+	scr[edi] = al;
+	scr[edi + 80] = al;
+	edi += 160;
+
+skipdraw2a:
+	if (ecx == 0)
+		goto skipdraw4a;
+
+startdrawa:
+	scr[edi] = al;
+	scr[edi + 80] = al;
+	scr[edi + 160] = al;
+	scr[edi + 240] = al;
+	edi += 320;
+
+	ecx--;
+	if (ecx != 0)
+		goto startdrawa;
+
+skipdraw4a:
+	eax = edi;
+
+	return eax;
+}
+
+int drawbotslab(int edi, int ecx, int eax)
+{
+	int al = eax & 0xFF;
+	int carry;
+
+	carry = ecx & 1;
+	ecx >>= 1;
+
+	if (carry == 0)
+		goto skipdraw1b;
+
+	scr[edi] = al;
+
+	edi -= 80;
+
+skipdraw1b:
+	carry = ecx & 1;
+	ecx >>= 1;
+
+	if (carry == 0)
+		goto skipdraw2b;
+
+	scr[edi] = al;
+	scr[edi - 80] = al;
+	edi -= 160;
+
+skipdraw2b:
+	if (ecx == 0)
+		goto skipdraw4b;
+
+startdrawb:
+	scr[edi] = al;
+	scr[edi - 80] = al;
+	scr[edi - 160] = al;
+	scr[edi - 240] = al;
+	edi -= 320;
+
+	ecx--;
+	if (ecx != 0)
+		goto startdrawb;
+
+skipdraw4b:
+	eax = edi;
+
+	return eax;
+}
 
 void readmouse()
 {
