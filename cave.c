@@ -30,34 +30,29 @@ uint32_t palette[256];
 
 volatile char keystatus[256];
 
-long scale (long, long, long);
-#pragma aux scale =\
-	"imul ebx"\
-	"idiv ecx"\
-	parm [eax][ebx][ecx] modify [eax edx]
+long scale(long a, long b, long c)
+{
+	return (a * b) / c;
+}
 
-long mulscale (long, long, long);
-#pragma aux mulscale =\
-	"imul ebx"\
-	"shrd eax, edx, cl"\
-	parm [eax][ebx][ecx] modify [edx]
+long mulscale(long a, long b, long c)
+{
+	return (a * b) >> (c & 0xff);
+}
 
-long divscale (long, long, long);
-#pragma aux divscale =\
-	"cdq"\
-	"shld edx, eax, cl"\
-	"sal eax, cl"\
-	"idiv ebx"\
-	parm [eax][ebx][ecx] modify [edx]
+long divscale(long a, long b, long c)
+{
+	return (a << (c & 0xff)) / b;
+}
 
-long groudiv (long, long);
-#pragma aux groudiv =\
-	"shl eax, 12"\
-	"sub eax, posz"\
-	"shld edx, eax, 16"\
-	"sar ebx, 8"\
-	"idiv bx"\
-	parm [eax][ebx] modify [edx]
+long groudiv(long a, long b)
+{
+	a <<= 12;
+	a -= posz;
+	b >>= 8;
+	a /= (b & 0xffff);
+	return a;
+}
 
 long drawtopslab(long edi, long ecx, long eax)
 {
