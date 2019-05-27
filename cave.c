@@ -106,185 +106,6 @@ void readmouse()
     mousy = 0;
 }
 
-void main ()
-{
-	char blastcol;
-	long i, j, templong;
-
-	pixs = 2;
-	vidmode = 0;
-	xdim = 320;
-	ydim = 200;
-	blastcol = 0;
-
-	setscreenmode();
-	loadtables();
-	loadboard();
-
-	clockspeed = 0L;
-	totalclock = 0L;
-	numframes = 0L;
-	outp(0x43,54); outp(0x40,4972&255); outp(0x40,4972>>8);
-
-	blast(((posx>>10)&255),((posy>>10)&255),8L,blastcol);
-
-	while (keystatus[1] == 0)
-	{
-		for(i=0;i<xdim;i+=pixs)
-			grouvline((short)i,128L);                 //Draw to non-video memory
-
-		if (vidmode == 0)                            //Copy to screen
-		{
-			if (pixs == 4) showscreen4pix320200();
-			if (pixs == 2) showscreen2pix320200();
-			if (pixs == 1) showscreen1pix320200();
-		}
-		else
-		{
-			if (pixs == 4) showscreen4pix320400();
-			if (pixs == 2) showscreen2pix320400();
-			if (pixs == 1) showscreen1pix320400();
-		}
-
-		if (vidmode == 0)
-		{
-			pageoffset += 16384;
-			if (pageoffset >= 0xb0000) pageoffset = 0xa0000;
-		}
-		else
-		{
-			pageoffset += 32768;
-			if (pageoffset > 0xa8000) pageoffset = 0xa0000;
-		}
-
-		if (keystatus[0x33] > 0)   // ,< Change blasting color
-		{
-			keystatus[0x33] = 0;
-			blastcol = ((blastcol+64)&255);
-		}
-		if (keystatus[0x34] > 0)   // .> Change blasting color
-		{
-			keystatus[0x34] = 0;
-			blastcol = ((blastcol+192)&255);
-		}
-		if (keystatus[0x39] > 0)
-		{
-			if ((keystatus[0x1d]|keystatus[0x9d]) > 0)
-				blast(((posx>>10)&255),((posy>>10)&255),16L,blastcol);
-			else
-				blast(((posx>>10)&255),((posy>>10)&255),8L,blastcol);
-		}
-
-		vel = 0L;
-		svel = 0L;
-		angvel = 0;
-
-		readmouse();
-		ang += mousx;
-		vel = (((long)-mousy)<<3);
-
-		if (keystatus[0x4e] > 0) horiz += clockspeed;
-		if (keystatus[0x4a] > 0) horiz -= clockspeed;
-		if (keystatus[0x1e] > 0)
-		{
-			posz -= (clockspeed<<(keystatus[0x2a]+8));
-			if (posz < 2048) posz = 2048;
-		}
-		if (keystatus[0x2c] > 0)
-		{
-			posz += (clockspeed<<(keystatus[0x2a]+8));
-			if (posz >= 1048576-4096-2048) posz = 1048575-4096-2048;
-		}
-		if (keystatus[0x9d] == 0)
-		{
-			if (keystatus[0xcb] > 0) angvel = -16;
-			if (keystatus[0xcd] > 0) angvel = 16;
-		}
-		else
-		{
-			if (keystatus[0xcb] > 0) svel = 12L;
-			if (keystatus[0xcd] > 0) svel = -12L;
-		}
-		if (keystatus[0xc8] > 0) vel = 12L;
-		if (keystatus[0xd0] > 0) vel = -12L;
-		if (keystatus[0x2a] > 0)
-		{
-			vel <<= 1;
-			svel <<= 1;
-		}
-		if (angvel != 0)
-		{
-			ang += ((angvel*((short int)clockspeed))>>3);
-			ang = (ang+2048)&2047;
-		}
-		if ((vel != 0L) || (svel != 0L))
-		{
-			posx += ((vel*clockspeed*sintable[(2560+ang)&2047])>>12);
-			posy += ((vel*clockspeed*sintable[(2048+ang)&2047])>>12);
-			posx += ((svel*clockspeed*sintable[(2048+ang)&2047])>>12);
-			posy -= ((svel*clockspeed*sintable[(2560+ang)&2047])>>12);
-			posx &= 0x3ffffff;
-			posy &= 0x3ffffff;
-		}
-
-		if (keystatus[0x10] > 0) keystatus[0x10] = 0, pixs = 1;
-		if (keystatus[0x11] > 0) keystatus[0x11] = 0, pixs = 2;
-		if (keystatus[0x12] > 0) keystatus[0x12] = 0, pixs = 4;
-		if ((keystatus[0x1f]|keystatus[0x20]) > 0)
-		{
-			if (keystatus[0x1f] > 0)
-			{
-				if (vidmode == 0)
-				{
-					pageoffset = 0xa0000;
-					vidmode = 1;
-					outp(0x3d4,0x9); outp(0x3d5,inp(0x3d5)&254);
-					keystatus[0x1f] = 0;
-					ydim = 400L;
-					horiz <<= 1;
-				}
-			}
-			if (keystatus[0x20] > 0)
-			{
-				if (vidmode == 1)
-				{
-					vidmode = 0;
-					outp(0x3d4,0x9); outp(0x3d5,inp(0x3d5)|1);
-					keystatus[0x20] = 0;
-					ydim = 200L;
-					horiz >>= 1;
-				}
-			}
-		}
-
-		numframes++;
-		totalclock += clockspeed;
-		clockspeed = 0L;
-	}
-	outp(0x43,54); outp(0x40,255); outp(0x40,255);
-	if (totalclock != 0)
-	{
-		templong = (numframes*24000L)/totalclock;
-		printf("%d.%1d%1d frames per second\n",(short int)(templong/100),(short int)((templong/10)%10),(short int)(templong%10));
-	}
-}
-
-void loadboard ()
-{
-	long i, j;
-
-	posx = 512; posy = 512; posz = ((128-32)<<12); ang = 0;
-	horiz = (ydim>>1);
-	for(i=0;i<256;i++)
-		for(j=0;j<256;j++)
-		{
-			h1[(i<<8)+j] = 255;
-			c1[(i<<8)+j] = 128;
-			h2[(i<<8)+j] = 0;
-			c2[(i<<8)+j] = 128;
-		}
-}
-
 void setscreenmode ()
 {
 	long i, fil;
@@ -321,6 +142,22 @@ void loadtables ()
 		read(fil,&sintable[0],4096);
 		close(fil);
 	}
+}
+
+void loadboard ()
+{
+	long i, j;
+
+	posx = 512; posy = 512; posz = ((128-32)<<12); ang = 0;
+	horiz = (ydim>>1);
+	for(i=0;i<256;i++)
+		for(j=0;j<256;j++)
+		{
+			h1[(i<<8)+j] = 255;
+			c1[(i<<8)+j] = 128;
+			h2[(i<<8)+j] = 0;
+			c2[(i<<8)+j] = 128;
+		}
 }
 
 long ksqrt (long num)
@@ -534,3 +371,167 @@ void grouvline (short x, long scandist)
 		drawtopslab(plc1,dm-um+1,c);
 	}
 }
+
+void main ()
+{
+	char blastcol;
+	long i, j, templong;
+
+	pixs = 2;
+	vidmode = 0;
+	xdim = 320;
+	ydim = 200;
+	blastcol = 0;
+
+	setscreenmode();
+	loadtables();
+	loadboard();
+
+	clockspeed = 0L;
+	totalclock = 0L;
+	numframes = 0L;
+	outp(0x43,54); outp(0x40,4972&255); outp(0x40,4972>>8);
+
+	blast(((posx>>10)&255),((posy>>10)&255),8L,blastcol);
+
+	while (keystatus[1] == 0)
+	{
+		for(i=0;i<xdim;i+=pixs)
+			grouvline((short)i,128L);                 //Draw to non-video memory
+
+		if (vidmode == 0)                            //Copy to screen
+		{
+			if (pixs == 4) showscreen4pix320200();
+			if (pixs == 2) showscreen2pix320200();
+			if (pixs == 1) showscreen1pix320200();
+		}
+		else
+		{
+			if (pixs == 4) showscreen4pix320400();
+			if (pixs == 2) showscreen2pix320400();
+			if (pixs == 1) showscreen1pix320400();
+		}
+
+		if (vidmode == 0)
+		{
+			pageoffset += 16384;
+			if (pageoffset >= 0xb0000) pageoffset = 0xa0000;
+		}
+		else
+		{
+			pageoffset += 32768;
+			if (pageoffset > 0xa8000) pageoffset = 0xa0000;
+		}
+
+		if (keystatus[0x33] > 0)   // ,< Change blasting color
+		{
+			keystatus[0x33] = 0;
+			blastcol = ((blastcol+64)&255);
+		}
+		if (keystatus[0x34] > 0)   // .> Change blasting color
+		{
+			keystatus[0x34] = 0;
+			blastcol = ((blastcol+192)&255);
+		}
+		if (keystatus[0x39] > 0)
+		{
+			if ((keystatus[0x1d]|keystatus[0x9d]) > 0)
+				blast(((posx>>10)&255),((posy>>10)&255),16L,blastcol);
+			else
+				blast(((posx>>10)&255),((posy>>10)&255),8L,blastcol);
+		}
+
+		vel = 0L;
+		svel = 0L;
+		angvel = 0;
+
+		readmouse();
+		ang += mousx;
+		vel = (((long)-mousy)<<3);
+
+		if (keystatus[0x4e] > 0) horiz += clockspeed;
+		if (keystatus[0x4a] > 0) horiz -= clockspeed;
+		if (keystatus[0x1e] > 0)
+		{
+			posz -= (clockspeed<<(keystatus[0x2a]+8));
+			if (posz < 2048) posz = 2048;
+		}
+		if (keystatus[0x2c] > 0)
+		{
+			posz += (clockspeed<<(keystatus[0x2a]+8));
+			if (posz >= 1048576-4096-2048) posz = 1048575-4096-2048;
+		}
+		if (keystatus[0x9d] == 0)
+		{
+			if (keystatus[0xcb] > 0) angvel = -16;
+			if (keystatus[0xcd] > 0) angvel = 16;
+		}
+		else
+		{
+			if (keystatus[0xcb] > 0) svel = 12L;
+			if (keystatus[0xcd] > 0) svel = -12L;
+		}
+		if (keystatus[0xc8] > 0) vel = 12L;
+		if (keystatus[0xd0] > 0) vel = -12L;
+		if (keystatus[0x2a] > 0)
+		{
+			vel <<= 1;
+			svel <<= 1;
+		}
+		if (angvel != 0)
+		{
+			ang += ((angvel*((short int)clockspeed))>>3);
+			ang = (ang+2048)&2047;
+		}
+		if ((vel != 0L) || (svel != 0L))
+		{
+			posx += ((vel*clockspeed*sintable[(2560+ang)&2047])>>12);
+			posy += ((vel*clockspeed*sintable[(2048+ang)&2047])>>12);
+			posx += ((svel*clockspeed*sintable[(2048+ang)&2047])>>12);
+			posy -= ((svel*clockspeed*sintable[(2560+ang)&2047])>>12);
+			posx &= 0x3ffffff;
+			posy &= 0x3ffffff;
+		}
+
+		if (keystatus[0x10] > 0) keystatus[0x10] = 0, pixs = 1;
+		if (keystatus[0x11] > 0) keystatus[0x11] = 0, pixs = 2;
+		if (keystatus[0x12] > 0) keystatus[0x12] = 0, pixs = 4;
+		if ((keystatus[0x1f]|keystatus[0x20]) > 0)
+		{
+			if (keystatus[0x1f] > 0)
+			{
+				if (vidmode == 0)
+				{
+					pageoffset = 0xa0000;
+					vidmode = 1;
+					outp(0x3d4,0x9); outp(0x3d5,inp(0x3d5)&254);
+					keystatus[0x1f] = 0;
+					ydim = 400L;
+					horiz <<= 1;
+				}
+			}
+			if (keystatus[0x20] > 0)
+			{
+				if (vidmode == 1)
+				{
+					vidmode = 0;
+					outp(0x3d4,0x9); outp(0x3d5,inp(0x3d5)|1);
+					keystatus[0x20] = 0;
+					ydim = 200L;
+					horiz >>= 1;
+				}
+			}
+		}
+
+		numframes++;
+		totalclock += clockspeed;
+		clockspeed = 0L;
+	}
+	outp(0x43,54); outp(0x40,255); outp(0x40,255);
+	if (totalclock != 0)
+	{
+		templong = (numframes*24000L)/totalclock;
+		printf("%d.%1d%1d frames per second\n",(short int)(templong/100),(short int)((templong/10)%10),(short int)(templong%10));
+	}
+}
+
