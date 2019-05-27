@@ -140,34 +140,33 @@ void loadtables()
 	close(fd);
 }
 
-void loadboard ()
+void loadboard()
 {
-	long i, j;
+	posx = 512;
+	posy = 512;
+	posz = (128 - 32) << 12;
+	ang = 0;
+	horiz = ydim >> 1;
 
-	posx = 512; posy = 512; posz = ((128-32)<<12); ang = 0;
-	horiz = (ydim>>1);
-	for(i=0;i<256;i++)
-		for(j=0;j<256;j++)
-		{
-			h1[(i<<8)+j] = 255;
-			c1[(i<<8)+j] = 128;
-			h2[(i<<8)+j] = 0;
-			c2[(i<<8)+j] = 128;
+	for (int i = 0; i < 256; ++i)
+		for (int j = 0; j < 256; ++j) {
+			h1[(i << 8) + j] = 255;
+			c1[(i << 8) + j] = 128;
+			h2[(i << 8) + j] = 0;
+			c2[(i << 8) + j] = 128;
 		}
 }
 
-long ksqrt (long num)
+long ksqrt(long num)
 {
-	long root, temp;
+	long root = 128, temp;
 
-	root = 128;
-	do
-	{
+	do {
 		temp = root;
-		root = ((root+(num/root))>>1);
-	}
-	while (labs(temp-root) > 1);
-	return(root);
+		root = (root + (num / root)) >> 1;
+	} while (labs(temp - root) > 1);
+
+	return root;
 }
 
 void blast (long gridx, long gridy, long rad, char blastingcol)
