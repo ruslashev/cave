@@ -1,0 +1,44 @@
+CAVE engine by Ken Silverman      4/21/94        NOT FOR DISTRIBUTION.
+
+	Welcome to the CAVE engine!  The editor is in the engine itself.
+I like to hold down the space bar and move backwards to see the passage I
+am making as it's being created.
+
+	Editor:
+Space Bar     = BLAST!  Clears a sphere out of the cave.
+Ct.Space Bar  = S-U-P-E-R BLAST!  Clears a huge sphere out of the cave.
+< / >         = Change blasting color (There's 4 colors, each with 64 shades)
+
+	Movement:
+Arrow / Mouse = movement
+Rt. Ctrl      = strafe
+Lt. Shift     = Double speed
+A / Z         = Move up / down
++ / -         = Look up / down
+
+	Screen control:
+Q             = scan 320/320 columns (1*1 pixels)
+W             = scan 160/320 columns (2*1 pixels)
+E             = scan  80/320 columns (4*1 pixels)
+R             = SMART detail (default) - if you're moving then uses mode W
+													  if you're stopped then uses mode Q
+S             = 320*400 resolution
+D             = 320*200 resolution (default)
+
+кФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФП
+Г          лллллл       лллллл  ллллллллллллллллллл  ллллллм          лллллл Г
+Г          ллББлл      ллББлл   ллБББББББББББББББлл  ллББББлл         ллББлл Г
+Г          ллББлл     ллББлл    ллББллллллллллллллл  ллБББББлл        ллББлл Г
+Г          ллББлл    ллББлл     ллББлллл             ллББллББлл       ллББлл Г
+Г          ллББлл   ллББлл      ллББлллл             ллББлллББлл      ллББлл Г
+Г          ллББлл  ллББлл       ллББлллл             ллББллплББлл     ллББлл Г
+Г          ллББлллллББлл        ллББллллллллллллллл  ллББлл  лББлл    ллББлл Г
+Г ллллллл  ллББББББББллн        ллБББББББББББББББлл  ллББлл   лБББл   ллББлл Г
+Г          ллББлллллББлл        ллББллллллллллллллл  ллББлл    ллББл  ллББлл Г
+Г          ллББлл  ллББлл       ллББлллл             ллББлл     ллББлмллББлл Г
+Г          ллББлл   ллББлл      ллББлллл             ллББлл      ллББлллББлл Г
+Г          ллББлл    ллББлл     ллББлллл             ллББлл       ллББллББлл Г
+Г          ллББлл     ллББлл    ллББллллллллллллллл  ллББлл        ллБББББлл Г
+Г          ллББлл      ллББлл   ллБББББББББББББББлл  ллББлл         ллББББлл Г
+Г          лллллл       лллллл  ллллллллллллллллллл  лллллл          плллллл Г
+РФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФй
