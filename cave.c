@@ -16,7 +16,7 @@
 
 long posx, posy, posz, horiz, xdim, ydim;
 long newposz, vel, svel, angvel, pageoffset;
-short ang, pixs, vidmode, detmode;
+short ang, pixs, vidmode;
 short moustat, mousx, mousy;
 
 char h1[65536], c1[65536];
@@ -312,7 +312,6 @@ void main ()
 	ydim = 200;
 	pageoffset = 0xa0000;
 	blastcol = 0;
-	detmode = 0;
 
 	setscreenmode();
 	loadtables();
@@ -451,17 +450,9 @@ void main ()
 			posy &= 0x3ffffff;
 		}
 
-		if (detmode == 0)
-		{
-			if ((vel|svel|angvel) == 0)
-				pixs = 1;
-			else
-				pixs = 2;
-		}
 		if (keystatus[0x10] > 0) keystatus[0x10] = 0, pixs = 1;
 		if (keystatus[0x11] > 0) keystatus[0x11] = 0, pixs = 2;
 		if (keystatus[0x12] > 0) keystatus[0x12] = 0, pixs = 4;
-		if (keystatus[0x13] > 0) keystatus[0x13] = 0, detmode = 1-detmode;
 		if ((keystatus[0x1f]|keystatus[0x20]) > 0)
 		{
 			if (keystatus[0x1f] > 0)
