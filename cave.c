@@ -26,12 +26,8 @@ char scrbuf[128000];
 short numpalookups;
 unsigned char palookup[MAXPALOOKUPS<<8], palette[768];
 
-volatile char keystatus[256], readch, oldreadch, extended;
+volatile char keystatus[256];
 volatile long clockspeed, totalclock, numframes;
-void (__interrupt __far *oldtimerhandler)();
-void __interrupt __far timerhandler(void);
-void (__interrupt __far *oldkeyhandler)();
-void __interrupt __far keyhandler(void);
 
 void setvmode (long);
 #pragma aux setvmode =\
@@ -236,44 +232,6 @@ void readmouse ();
 	"mov mousy, dx"\
 	modify [ax cx dx]
 
-void interruptend ();
-#pragma aux interruptend =\
-	"mov al, 20h"\
-	"out 20h, al"\
-	modify [eax]
-
-void readkey ();
-#pragma aux readkey =\
-	"in al, 0x60"\
-	"mov readch, al"\
-	"in al, 0x61"\
-	"or al, 0x80"\
-	"out 0x61, al"\
-	"and al, 0x7f"\
-	"out 0x61, al"\
-	modify [eax]
-
-void __interrupt __far timerhandler()
-{
-	clockspeed++;
-	interruptend();
-}
-
-void __interrupt __far keyhandler()
-{
-	oldreadch = readch;
-	readkey();
-	if ((readch|1) == 0xe1)
-		extended = 128;
-	else
-	{
-		if (oldreadch != readch)
-			keystatus[(readch&127)+extended] = ((readch>>7)^1);
-		extended = 0;
-	}
-	interruptend();
-}
-
 //------------------------ Simple PNG OUT code begins ------------------------
 FILE *pngofil;
 long pngoxplc, pngoyplc, pngoxsiz, pngoysiz;
@@ -361,14 +319,10 @@ void main ()
 	loadboard();
 
 	setupmouse();
-	oldkeyhandler = _dos_getvect(0x9);
-	_disable(); _dos_setvect(0x9, keyhandler); _enable();
 	clockspeed = 0L;
 	totalclock = 0L;
 	numframes = 0L;
 	outp(0x43,54); outp(0x40,4972&255); outp(0x40,4972>>8);
-	oldtimerhandler = _dos_getvect(0x8);
-	_disable(); _dos_setvect(0x8, timerhandler); _enable();
 
 	for(i=0;i<xdim;i++)
 	{
@@ -545,8 +499,6 @@ void main ()
 		clockspeed = 0L;
 	}
 	outp(0x43,54); outp(0x40,255); outp(0x40,255);
-	_dos_setvect(0x8, oldtimerhandler);
-	_dos_setvect(0x9, oldkeyhandler);
 	setvmode(0x3);
 	if (totalclock != 0)
 	{
