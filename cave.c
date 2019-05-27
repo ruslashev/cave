@@ -28,7 +28,6 @@ unsigned char palookup[MAXPALOOKUPS << 8u];
 uint32_t palette[256];
 
 volatile char keystatus[256];
-volatile long clockspeed, totalclock, numframes;
 
 long scale (long, long, long);
 #pragma aux scale =\
@@ -354,43 +353,35 @@ void grouvline (short x, long scandist)
 	}
 }
 
-void main ()
+void keydown(char key, int down)
+{
+	printf("key '%c' down %d\n", key, down);
+}
+
+int main()
 {
 	char blastcol;
-	long i, j, templong;
 
 	vidmode = 0;
 	xdim = 320;
 	ydim = 200;
 	blastcol = 0;
 
+	gfx_init(xdim, ydim);
+
 	setscreenmode();
 	loadtables();
 	loadboard();
 
-	clockspeed = 0L;
-	totalclock = 0L;
-	numframes = 0L;
-	outp(0x43,54); outp(0x40,4972&255); outp(0x40,4972>>8);
+	blast((posx >> 10) & 255, (posy >> 10) & 255, 8L, blastcol);
 
-	blast(((posx>>10)&255),((posy>>10)&255),8L,blastcol);
+	while (gfx_update(keydown)) {
+		gfx_clear();
 
-	while (keystatus[1] == 0)
-	{
-		for(i=0;i<xdim;i+=1)
-			grouvline((short)i,128L);                 //Draw to non-video memory
+		for (long i = 0; i < xdim; ++i)
+			grouvline((short)i, 128L);
 
-		if (vidmode == 0)
-		{
-			pageoffset += 16384;
-			if (pageoffset >= 0xb0000) pageoffset = 0xa0000;
-		}
-		else
-		{
-			pageoffset += 32768;
-			if (pageoffset > 0xa8000) pageoffset = 0xa0000;
-		}
-
+		/*
 		if (keystatus[0x33] > 0)   // ,< Change blasting color
 		{
 			keystatus[0x33] = 0;
@@ -408,11 +399,13 @@ void main ()
 			else
 				blast(((posx>>10)&255),((posy>>10)&255),8L,blastcol);
 		}
+		*/
 
 		vel = 0L;
 		svel = 0L;
 		angvel = 0;
 
+		/*
 		readmouse();
 		ang += mousx;
 		vel = (((long)-mousy)<<3);
@@ -460,43 +453,7 @@ void main ()
 			posx &= 0x3ffffff;
 			posy &= 0x3ffffff;
 		}
-
-		if ((keystatus[0x1f]|keystatus[0x20]) > 0)
-		{
-			if (keystatus[0x1f] > 0)
-			{
-				if (vidmode == 0)
-				{
-					pageoffset = 0xa0000;
-					vidmode = 1;
-					outp(0x3d4,0x9); outp(0x3d5,inp(0x3d5)&254);
-					keystatus[0x1f] = 0;
-					ydim = 400L;
-					horiz <<= 1;
-				}
-			}
-			if (keystatus[0x20] > 0)
-			{
-				if (vidmode == 1)
-				{
-					vidmode = 0;
-					outp(0x3d4,0x9); outp(0x3d5,inp(0x3d5)|1);
-					keystatus[0x20] = 0;
-					ydim = 200L;
-					horiz >>= 1;
-				}
-			}
-		}
-
-		numframes++;
-		totalclock += clockspeed;
-		clockspeed = 0L;
-	}
-	outp(0x43,54); outp(0x40,255); outp(0x40,255);
-	if (totalclock != 0)
-	{
-		templong = (numframes*24000L)/totalclock;
-		printf("%d.%1d%1d frames per second\n",(short int)(templong/100),(short int)((templong/10)%10),(short int)(templong%10));
+		*/
 	}
 }
 
