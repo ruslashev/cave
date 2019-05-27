@@ -27,8 +27,6 @@ unsigned short numpalookups;
 unsigned char palookup[MAXPALOOKUPS << 8u];
 uint32_t palette[256];
 
-volatile char keystatus[256];
-
 long scale(long a, long b, long c)
 {
 	return (a * b) / c;
@@ -501,6 +499,14 @@ int main()
 			posy &= 0x3ffffff;
 		}
 		*/
+
+		long j = 16000;
+
+		for (int y = 0; y < ydim; ++y)
+			for (int x = 0; x < xdim; ++x)
+				gfx_set_pixel(x, y, palette[scrbuf[y * 80 + (x >> 2) + (x & 3) * j]]);
+
+		gfx_draw();
 	}
 }
 
