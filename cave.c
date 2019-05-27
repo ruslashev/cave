@@ -16,7 +16,7 @@
 
 long posx, posy, posz, horiz, xdim, ydim;
 long newposz, vel, svel, angvel;
-short ang, pixs, vidmode;
+short ang, vidmode;
 short mousx, mousy;
 
 char h1[65536], c1[65536];
@@ -224,143 +224,133 @@ void grouvline (short x, long scandist)
 	long plc1, plc2, cosval, sinval;
 	long snx, sny, dax, c, shade, cnt, bufplc;
 
-	switch(pixs)
-	{
-		case 1:
-			plc1 = 0 * 80+(x>>2)+FP_OFF(scrbuf);
-			plc2 = (ydim - 1) * 80+(x>>2)+FP_OFF(scrbuf);
-			if ((x&2) > 0)
-			{
-				plc1 += 32000*(vidmode+1);
-				plc2 += 32000*(vidmode+1);
-			}
-			if ((x&1) > 0)
-			{
-				plc1 += 16000*(vidmode+1);
-				plc2 += 16000*(vidmode+1);
-			}
-			break;
-		case 2:
-			plc1 = 0 * 80+(x>>2)+FP_OFF(scrbuf);
-			plc2 = (ydim - 1) * 80+(x>>2)+FP_OFF(scrbuf);
-			if ((x&2) > 0)
-			{
-				plc1 += 16000*(vidmode+1);
-				plc2 += 16000*(vidmode+1);
-			}
-			break;
-		case 4:
-			plc1 = 0 * 80+(x>>2)+FP_OFF(scrbuf);
-			plc2 = (ydim - 1) * 80+(x>>2)+FP_OFF(scrbuf);
-			break;
+	plc1 = 0 * 80 + (x >> 2);
+	plc2 = (ydim - 1) * 80 + (x >> 2);
+	if ((x & 2) > 0) {
+		plc1 += 32000 * (vidmode + 1);
+		plc2 += 32000 * (vidmode + 1);
+	}
+	if ((x & 1) > 0) {
+		plc1 += 16000 * (vidmode + 1);
+		plc2 += 16000 * (vidmode + 1);
 	}
 
 	cosval = sintable[(ang+2560)&2047];
 	sinval = sintable[(ang+2048)&2047];
 
-	if (pixs == 1) dax = (x<<1)-xdim;
-	if (pixs == 2) dax = (x<<1)+1-xdim;
-	if (pixs == 4) dax = (x<<1)+3-xdim;
+	dax = (x<<1)-xdim;
 
 	incr[0] = cosval - scale(sinval,dax,xdim);
 	incr[1] = sinval + scale(cosval,dax,xdim);
 
-	if (incr[0] < 0) dir[0] = -1, incr[0] = -incr[0]; else dir[0] = 1;
-	if (incr[1] < 0) dir[1] = -1, incr[1] = -incr[1]; else dir[1] = 1;
-	snx = (posx&1023); if (dir[0] == 1) snx ^= 1023;
-	sny = (posy&1023); if (dir[1] == 1) sny ^= 1023;
-	cnt = ((snx*incr[1] - sny*incr[0])>>10);
-	grid[0] = ((posx>>10)&255); grid[1] = ((posy>>10)&255);
+	if (incr[0] < 0)
+		dir[0] = -1, incr[0] = -incr[0];
+	else
+		dir[0] = 1;
 
-	if (incr[0] != 0)
-	{
-		dinc[0] = divscale(65536>>vidmode,incr[0],12);
-		dist[0] = mulscale(dinc[0],snx,10);
+	if (incr[1] < 0)
+		dir[1] = -1, incr[1] = -incr[1];
+	else
+		dir[1] = 1;
+
+	snx = posx & 1023;
+	if (dir[0] == 1)
+		snx ^= 1023;
+
+	sny = posy & 1023;
+	if (dir[1] == 1)
+		sny ^= 1023;
+
+	cnt = (snx * incr[1] - sny * incr[0]) >> 10;
+	grid[0] = (posx >> 10) & 255;
+	grid[1] = (posy >> 10) & 255;
+
+	if (incr[0] != 0) {
+		dinc[0] = divscale(65536 >> vidmode, incr[0], 12);
+		dist[0] = mulscale(dinc[0], snx, 10);
 	}
-	if (incr[1] != 0)
-	{
-		dinc[1] = divscale(65536>>vidmode,incr[1],12);
-		dist[1] = mulscale(dinc[1],sny,10);
+	if (incr[1] != 0) {
+		dinc[1] = divscale(65536 >> vidmode, incr[1], 12);
+		dist[1] = mulscale(dinc[1], sny, 10);
 	}
 
-	um = 0 - horiz;
-	dm = (ydim - 1) - horiz;
+	um = -horiz;
+	dm = ydim - 1 - horiz;
 
-	i = incr[0]; incr[0] = incr[1]; incr[1] = -i;
+	i = incr[0];
+	incr[0] = incr[1];
+	incr[1] = -i;
 
 	shade = 8;
-	while (dist[cnt>=0] <= 8192)
-	{
-		i = (cnt>=0);
+	while (dist[cnt >= 0] <= 8192) {
+		i = cnt >= 0;
 
-		grid[i] = ((grid[i]+dir[i])&255);
+		grid[i] = (grid[i] + dir[i]) & 255;
 		dist[i] += dinc[i];
 		cnt += incr[i];
-		shade++;
+		++shade;
 	}
 
-	bufplc = (grid[0]<<8)+grid[1];
+	bufplc = (grid[0] << 8) + grid[1];
 
-	while (shade < scandist-9)
-	{
-		i = (cnt>=0);
+	while (shade < scandist - 9) {
+		i = cnt >= 0;
 
-		oh1 = h1[bufplc], oh2 = h2[bufplc];
+		oh1 = h1[bufplc];
+		oh2 = h2[bufplc];
 
-		h = groudiv((long)oh1,dist[i]);
-		if (um <= h)
-		{
-			c = palookup[((shade>>1)<<8)+c1[bufplc]];
-			if (h > dm) break;
-			plc1 = drawtopslab(plc1,h-um+1,c);
-			um = h+1;
+		h = groudiv((long)oh1, dist[i]);
+		if (um <= h) {
+			c = palookup[((shade >> 1) << 8) + c1[bufplc]];
+			if (h > dm)
+				break;
+			plc1 = drawtopslab(plc1, h - um + 1, c);
+			um = h + 1;
 		}
 
-		h = groudiv((long)oh2,dist[i]);
-		if (dm >= h)
-		{
-			c = palookup[((shade>>1)<<8)+c2[bufplc]];
-			if (h < um) break;
-			plc2 = drawbotslab(plc2,dm-h+1,c);
-			dm = h-1;
+		h = groudiv((long)oh2, dist[i]);
+		if (dm >= h) {
+			c = palookup[((shade >> 1) << 8) + c2[bufplc]];
+			if (h < um)
+				break;
+			plc2 = drawbotslab(plc2, dm - h + 1, c);
+			dm = h - 1;
 		}
 
-		grid[i] = ((grid[i]+dir[i])&255);
-		bufplc = (grid[0]<<8)+grid[1];
+		grid[i] = (grid[i] + dir[i]) & 255;
+		bufplc = (grid[0] << 8) + grid[1];
 
-		if (h1[bufplc] > oh1)
-		{
-			h = groudiv((long)h1[bufplc],dist[i]);
-			if (um <= h)
-			{
-				c = palookup[(((shade>>1)-(i<<2))<<8)+c1[bufplc]];
-				if (h > dm) break;
-				plc1 = drawtopslab(plc1,h-um+1,c);
-				um = h+1;
+		if (h1[bufplc] > oh1) {
+			h = groudiv((long)h1[bufplc], dist[i]);
+			if (um <= h) {
+				c = palookup[(((shade >> 1) - (i << 2)) << 8) + c1[bufplc]];
+				if (h > dm)
+					break;
+				plc1 = drawtopslab(plc1, h - um + 1, c);
+				um = h + 1;
 			}
 		}
 
-		if (h2[bufplc] < oh2)
-		{
-			h = groudiv((long)h2[bufplc],dist[i]);
-			if (dm >= h)
-			{
-				c = palookup[(((shade>>1)+(i<<2))<<8)+c2[bufplc]];
-				if (h < um) break;
-				plc2 = drawbotslab(plc2,dm-h+1,c);
-				dm = h-1;
+		if (h2[bufplc] < oh2) {
+			h = groudiv((long)h2[bufplc], dist[i]);
+			if (dm >= h) {
+				c = palookup[(((shade >> 1) + (i << 2)) << 8) + c2[bufplc]];
+				if (h < um)
+					break;
+				plc2 = drawbotslab(plc2, dm - h + 1, c);
+				dm = h - 1;
 			}
 		}
 
 		dist[i] += dinc[i];
 		cnt += incr[i];
-		shade++;
+		++shade;
 	}
 
-	if (dm >= um)
-	{
-		if (shade >= scandist-9) c = palookup[(numpalookups-1)<<8];
-		drawtopslab(plc1,dm-um+1,c);
+	if (dm >= um) {
+		if (shade >= scandist - 9)
+			c = palookup[(numpalookups - 1) << 8];
+		drawtopslab(plc1, dm - um + 1, c);
 	}
 }
 
@@ -369,7 +359,6 @@ void main ()
 	char blastcol;
 	long i, j, templong;
 
-	pixs = 2;
 	vidmode = 0;
 	xdim = 320;
 	ydim = 200;
@@ -388,21 +377,8 @@ void main ()
 
 	while (keystatus[1] == 0)
 	{
-		for(i=0;i<xdim;i+=pixs)
+		for(i=0;i<xdim;i+=1)
 			grouvline((short)i,128L);                 //Draw to non-video memory
-
-		if (vidmode == 0)                            //Copy to screen
-		{
-			if (pixs == 4) showscreen4pix320200();
-			if (pixs == 2) showscreen2pix320200();
-			if (pixs == 1) showscreen1pix320200();
-		}
-		else
-		{
-			if (pixs == 4) showscreen4pix320400();
-			if (pixs == 2) showscreen2pix320400();
-			if (pixs == 1) showscreen1pix320400();
-		}
 
 		if (vidmode == 0)
 		{
@@ -485,9 +461,6 @@ void main ()
 			posy &= 0x3ffffff;
 		}
 
-		if (keystatus[0x10] > 0) keystatus[0x10] = 0, pixs = 1;
-		if (keystatus[0x11] > 0) keystatus[0x11] = 0, pixs = 2;
-		if (keystatus[0x12] > 0) keystatus[0x12] = 0, pixs = 4;
 		if ((keystatus[0x1f]|keystatus[0x20]) > 0)
 		{
 			if (keystatus[0x1f] > 0)
