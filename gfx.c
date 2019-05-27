@@ -40,13 +40,30 @@ void gfx_draw()
     SDL_RenderPresent(renderer);
 }
 
-int gfx_update()
+static char sdlkey_to_char(SDL_Keycode kc)
+{
+    switch (kc) {
+    case SDLK_w: return 'w';
+    case SDLK_a: return 'a';
+    case SDLK_s: return 's';
+    case SDLK_d: return 'd';
+    default:     return -1;
+    }
+}
+
+int gfx_update(key_event_t key_event_cb)
 {
     SDL_Event event;
+    char key;
 
     while (SDL_PollEvent(&event) != 0)
         if (event.type == SDL_QUIT)
             return 0;
+        else if ((event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) && event.key.repeat == 0) {
+            key = sdlkey_to_char(event.key.keysym.sym);
+            if (key != -1)
+                key_event_cb(key, event.type == SDL_KEYDOWN);
+        }
 
     return 1;
 }
