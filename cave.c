@@ -22,8 +22,7 @@ short mousx, mousy;
 char h1[65536], c1[65536];
 char h2[65536], c2[65536];
 short sintable[2048];
-char scrbuf[128000];
-unsigned char scr[320 * 200];
+unsigned char scrbuf[320 * 200];
 unsigned short numpalookups;
 unsigned char palookup[MAXPALOOKUPS << 8u];
 uint32_t palette[256];
@@ -65,7 +64,7 @@ long drawtopslab(long edi, long ecx, long eax)
 	if (carry == 0)
 		goto skipdraw1a;
 
-	scr[edi] = al;
+	scrbuf[edi] = al;
 
 	edi += 80;
 
@@ -76,8 +75,8 @@ skipdraw1a:
 	if (carry == 0)
 		goto skipdraw2a;
 
-	scr[edi] = al;
-	scr[edi + 80] = al;
+	scrbuf[edi] = al;
+	scrbuf[edi + 80] = al;
 	edi += 160;
 
 skipdraw2a:
@@ -85,10 +84,10 @@ skipdraw2a:
 		goto skipdraw4a;
 
 startdrawa:
-	scr[edi] = al;
-	scr[edi + 80] = al;
-	scr[edi + 160] = al;
-	scr[edi + 240] = al;
+	scrbuf[edi] = al;
+	scrbuf[edi + 80] = al;
+	scrbuf[edi + 160] = al;
+	scrbuf[edi + 240] = al;
 	edi += 320;
 
 	ecx--;
@@ -112,7 +111,7 @@ int drawbotslab(int edi, int ecx, int eax)
 	if (carry == 0)
 		goto skipdraw1b;
 
-	scr[edi] = al;
+	scrbuf[edi] = al;
 
 	edi -= 80;
 
@@ -123,8 +122,8 @@ skipdraw1b:
 	if (carry == 0)
 		goto skipdraw2b;
 
-	scr[edi] = al;
-	scr[edi - 80] = al;
+	scrbuf[edi] = al;
+	scrbuf[edi - 80] = al;
 	edi -= 160;
 
 skipdraw2b:
@@ -132,10 +131,10 @@ skipdraw2b:
 		goto skipdraw4b;
 
 startdrawb:
-	scr[edi] = al;
-	scr[edi - 80] = al;
-	scr[edi - 160] = al;
-	scr[edi - 240] = al;
+	scrbuf[edi] = al;
+	scrbuf[edi - 80] = al;
+	scrbuf[edi - 160] = al;
+	scrbuf[edi - 240] = al;
 	edi -= 320;
 
 	ecx--;
