@@ -12,7 +12,7 @@
 //      CAVE.C 11/17/1994 03:22 AM 15,722
 //   Looks like I ported GROUCAVE.BAS->CAVE.C around 04/20/1994 to 04/21/1994
 
-#define MAXPALOOKUPS 64
+#define MAXPALOOKUPS 64u
 
 long posx, posy, posz, horiz, xdim, ydim;
 long newposz, vel, svel, angvel;
@@ -23,8 +23,9 @@ char h1[65536], c1[65536];
 char h2[65536], c2[65536];
 short sintable[2048];
 char scrbuf[128000];
-short numpalookups;
-unsigned char palookup[MAXPALOOKUPS<<8], palette[768];
+unsigned short numpalookups;
+unsigned char palookup[MAXPALOOKUPS << 8u];
+uint32_t palette[256];
 
 volatile char keystatus[256];
 volatile long clockspeed, totalclock, numframes;
@@ -106,31 +107,26 @@ void readmouse()
     mousy = 0;
 }
 
-void setscreenmode ()
+void setscreenmode()
 {
-	long i, fil;
+	int fil;
+	unsigned char palette_interleaved[768];
 
-	outp(0x3c4,0x4); outp(0x3c5,0x6);
-	outp(0x3d4,0x14); outp(0x3d5,0x0);
-	outp(0x3d4,0x17); outp(0x3d5,0xe3);
-	if (ydim == 400)
-	{
-		outp(0x3d4,0x9); outp(0x3d5,inp(0x3d5)&254);
-	}
+	if ((fil = open("palette.dat", O_RDONLY)) == -1)
+		die("Can't load palette.dat.  Now why could that be?");
 
-	if ((fil = open("palette.dat",O_BINARY|O_RDWR,S_IREAD)) == -1)
-	{
-		printf("Can't load palette.dat.  Now why could that be?\n");
-		exit(0);
-	}
-	read(fil,&palette[0],768);
-	read(fil,&numpalookups,2);
-	read(fil,&palookup[0],numpalookups<<8);
+	read(fil, &palette_interleaved[0], 768);
+	read(fil, &numpalookups, 2);
+	read(fil, &palookup[0], numpalookups << 8u);
+
 	close(fil);
 
-	outp(0x3c8,0);
-	for(i=0;i<768;i++)
-		outp(0x3c9,palette[i]);
+	for (int i = 0; i < 256; ++i) {
+		unsigned char r = palette_interleaved[i * 3 + 0] * 4,
+		              g = palette_interleaved[i * 3 + 1] * 4,
+		              b = palette_interleaved[i * 3 + 2] * 4;
+		palette[i] = (r << 16) + (g << 8) + b;
+	}
 }
 
 void loadtables ()
