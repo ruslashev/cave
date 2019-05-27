@@ -21,7 +21,7 @@ short mousx, mousy;
 
 char h1[65536], c1[65536];
 char h2[65536], c2[65536];
-short sintable[2048], startumost[320], startdmost[320];
+short sintable[2048];
 char scrbuf[128000];
 short numpalookups;
 unsigned char palookup[MAXPALOOKUPS<<8], palette[768];
@@ -195,12 +195,6 @@ void main ()
 	numframes = 0L;
 	outp(0x43,54); outp(0x40,4972&255); outp(0x40,4972>>8);
 
-	for(i=0;i<xdim;i++)
-	{
-		startumost[i] = 0;
-		startdmost[i] = ydim-1;
-	}
-
 	blast(((posx>>10)&255),((posy>>10)&255),8L,blastcol);
 
 	while (keystatus[1] == 0)
@@ -348,11 +342,6 @@ void main ()
 					horiz >>= 1;
 				}
 			}
-			for(i=0;i<xdim;i++)
-			{
-				startumost[i] = 0;
-				startdmost[i] = ydim-1;
-			}
 		}
 
 		numframes++;
@@ -493,14 +482,11 @@ void grouvline (short x, long scandist)
 	long plc1, plc2, cosval, sinval;
 	long snx, sny, dax, c, shade, cnt, bufplc;
 
-	if (startumost[x] > startdmost[x])
-		return;
-
 	switch(pixs)
 	{
 		case 1:
-			plc1 = startumost[x]*80+(x>>2)+FP_OFF(scrbuf);
-			plc2 = startdmost[x]*80+(x>>2)+FP_OFF(scrbuf);
+			plc1 = 0 * 80+(x>>2)+FP_OFF(scrbuf);
+			plc2 = (ydim - 1) * 80+(x>>2)+FP_OFF(scrbuf);
 			if ((x&2) > 0)
 			{
 				plc1 += 32000*(vidmode+1);
@@ -513,8 +499,8 @@ void grouvline (short x, long scandist)
 			}
 			break;
 		case 2:
-			plc1 = startumost[x]*80+(x>>2)+FP_OFF(scrbuf);
-			plc2 = startdmost[x]*80+(x>>2)+FP_OFF(scrbuf);
+			plc1 = 0 * 80+(x>>2)+FP_OFF(scrbuf);
+			plc2 = (ydim - 1) * 80+(x>>2)+FP_OFF(scrbuf);
 			if ((x&2) > 0)
 			{
 				plc1 += 16000*(vidmode+1);
@@ -522,8 +508,8 @@ void grouvline (short x, long scandist)
 			}
 			break;
 		case 4:
-			plc1 = startumost[x]*80+(x>>2)+FP_OFF(scrbuf);
-			plc2 = startdmost[x]*80+(x>>2)+FP_OFF(scrbuf);
+			plc1 = 0 * 80+(x>>2)+FP_OFF(scrbuf);
+			plc2 = (ydim - 1) * 80+(x>>2)+FP_OFF(scrbuf);
 			break;
 	}
 
@@ -555,8 +541,8 @@ void grouvline (short x, long scandist)
 		dist[1] = mulscale(dinc[1],sny,10);
 	}
 
-	um = startumost[x]-horiz;
-	dm = startdmost[x]-horiz;
+	um = 0 - horiz;
+	dm = (ydim - 1) - horiz;
 
 	i = incr[0]; incr[0] = incr[1]; incr[1] = -i;
 
