@@ -109,17 +109,17 @@ void readmouse()
 
 void setscreenmode()
 {
-	int fil;
+	int fd;
 	unsigned char palette_interleaved[768];
 
-	if ((fil = open("palette.dat", O_RDONLY)) == -1)
+	if ((fd = open("palette.dat", O_RDONLY)) == -1)
 		die("Can't load palette.dat.  Now why could that be?");
 
-	read(fil, &palette_interleaved[0], 768);
-	read(fil, &numpalookups, 2);
-	read(fil, &palookup[0], numpalookups << 8u);
+	read(fd, &palette_interleaved[0], 768);
+	read(fd, &numpalookups, 2);
+	read(fd, &palookup[0], numpalookups << 8u);
 
-	close(fil);
+	close(fd);
 
 	for (int i = 0; i < 256; ++i) {
 		unsigned char r = palette_interleaved[i * 3 + 0] * 4,
@@ -129,15 +129,15 @@ void setscreenmode()
 	}
 }
 
-void loadtables ()
+void loadtables()
 {
-	short fil;
+	int fd;
 
-	if ((fil = open("tables.dat",O_BINARY|O_RDWR,S_IREAD)) != -1)
-	{
-		read(fil,&sintable[0],4096);
-		close(fil);
-	}
+	if ((fd = open("tables.dat", O_RDONLY)) == -1)
+		die("can't open tables.dat");
+
+	read(fd, &sintable[0], 4096);
+	close(fd);
 }
 
 void loadboard ()
