@@ -216,7 +216,8 @@ long ksqrt(long num)
 void blast(long gridx, long gridy, long rad, char blastingcol)
 {
 	short tempshort;
-	long i, j, dax, day, daz, dasqr, templong;
+	long i, j, dax, day, dasqr, templong;
+	int32_t daz;
 
 	templong = rad + 2;
 	for (i = -templong; i <= templong; ++i)
@@ -230,7 +231,7 @@ void blast(long gridx, long gridy, long rad, char blastingcol)
 			else
 				daz = -(ksqrt(-dasqr) << 1);
 
-			if ((posz >> 12) - daz < h1[(dax << 8) + day]) {
+			if (((unsigned)posz >> 12) - daz < h1[(dax << 8) + day]) {
 				h1[(dax << 8) + day] = (posz >> 12) - daz;
 				if ((posz >> 12) - daz < 0)
 					h1[(dax << 8) + day] = 0;
