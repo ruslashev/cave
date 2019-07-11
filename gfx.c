@@ -43,11 +43,26 @@ void gfx_draw()
 static char sdlkey_to_char(SDL_Keycode kc)
 {
     switch (kc) {
-    case SDLK_w: return 'w';
-    case SDLK_a: return 'a';
-    case SDLK_s: return 's';
-    case SDLK_d: return 'd';
-    default:     return -1;
+    case SDLK_a:      return 'a';
+    case SDLK_d:      return 'd';
+    case SDLK_e:      return 'e';
+    case SDLK_q:      return 'q';
+    case SDLK_r:      return 'r';
+    case SDLK_s:      return 's';
+    case SDLK_w:      return 'w';
+    case SDLK_z:      return 'z';
+    case SDLK_COMMA:  return ',';
+    case SDLK_PERIOD: return '.';
+    case SDLK_SPACE:  return ' ';
+    case SDLK_LCTRL:  return GFX_CTRL;
+    case SDLK_LSHIFT: return GFX_SHIFT;
+    case SDLK_UP:     return GFX_UP;
+    case SDLK_DOWN:   return GFX_DOWN;
+    case SDLK_LEFT:   return GFX_LEFT;
+    case SDLK_RIGHT:  return GFX_RIGHT;
+    case SDLK_MINUS:  return '-';
+    case SDLK_EQUALS: return '=';
+    default:          return -1;
     }
 }
 

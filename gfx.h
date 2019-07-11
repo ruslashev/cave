@@ -9,6 +9,15 @@
 
 typedef void (*key_event_t)(char, int);
 
+enum {
+    GFX_CTRL  = 1,
+    GFX_SHIFT = 2,
+    GFX_UP    = 3,
+    GFX_DOWN  = 4,
+    GFX_LEFT  = 5,
+    GFX_RIGHT = 6,
+};
+
 void gfx_init(unsigned int _window_width, unsigned int _window_height);
 void gfx_draw();
 int gfx_update(key_event_t key_event_cb);
