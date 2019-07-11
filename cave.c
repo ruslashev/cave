@@ -433,25 +433,23 @@ int main()
 		for (long i = 0; i < xdim; ++i)
 			grouvline((short)i, 128L);
 
-		/*
-		if (keystatus[0x33] > 0)   // ,< Change blasting color
+		if (keystatus[','] > 0)   // ,< Change blasting color
 		{
-			keystatus[0x33] = 0;
+			keystatus[','] = 0;
 			blastcol = ((blastcol+64)&255);
 		}
-		if (keystatus[0x34] > 0)   // .> Change blasting color
+		if (keystatus['.'] > 0)   // .> Change blasting color
 		{
-			keystatus[0x34] = 0;
+			keystatus['.'] = 0;
 			blastcol = ((blastcol+192)&255);
 		}
-		if (keystatus[0x39] > 0)
+		if (keystatus[' '] > 0)
 		{
-			if ((keystatus[0x1d]|keystatus[0x9d]) > 0)
+			if (keystatus[GFX_CTRL] > 0)
 				blast(((posx>>10)&255),((posy>>10)&255),16L,blastcol);
 			else
 				blast(((posx>>10)&255),((posy>>10)&255),8L,blastcol);
 		}
-		*/
 
 		vel = 0L;
 		svel = 0L;
@@ -461,10 +459,10 @@ int main()
 		readmouse();
 		ang += mousx;
 		vel = (((long)-mousy)<<3);
-
-		if (keystatus[0x4e] > 0) horiz += clockspeed;
-		if (keystatus[0x4a] > 0) horiz -= clockspeed;
 		*/
+
+		if (keystatus['='] > 0) horiz += clockspeed;
+		if (keystatus['-'] > 0) horiz -= clockspeed;
 		if (keystatus['a'] > 0)
 		{
 			posz -= (clockspeed<<(keystatus[GFX_SHIFT]+8));
@@ -475,20 +473,18 @@ int main()
 			posz += (clockspeed<<(keystatus[GFX_SHIFT]+8));
 			if (posz >= 1048576-4096-2048) posz = 1048575-4096-2048;
 		}
-		/*
-		if (keystatus[0x9d] == 0)
+		if (keystatus[GFX_CTRL] == 0)
 		{
-			if (keystatus[0xcb] > 0) angvel = -16;
-			if (keystatus[0xcd] > 0) angvel = 16;
+			if (keystatus[GFX_LEFT] > 0) angvel = -16;
+			if (keystatus[GFX_RIGHT] > 0) angvel = 16;
 		}
 		else
 		{
-			if (keystatus[0xcb] > 0) svel = 12L;
-			if (keystatus[0xcd] > 0) svel = -12L;
+			if (keystatus[GFX_LEFT] > 0) svel = 12L;
+			if (keystatus[GFX_RIGHT] > 0) svel = -12L;
 		}
-		if (keystatus[0xc8] > 0) vel = 12L;
-		if (keystatus[0xd0] > 0) vel = -12L;
-		*/
+		if (keystatus[GFX_UP] > 0) vel = 12L;
+		if (keystatus[GFX_DOWN] > 0) vel = -12L;
 		if (keystatus[GFX_SHIFT] > 0)
 		{
 			vel <<= 1;
