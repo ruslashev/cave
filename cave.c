@@ -26,6 +26,7 @@ unsigned char scrbuf[320 * 200];
 unsigned short numpalookups;
 unsigned char palookup[MAXPALOOKUPS << 8u];
 uint32_t palette[256];
+int keystatus[256];
 
 long scale(long a, long b, long c)
 {
@@ -401,7 +402,7 @@ void grouvline (short x, long scandist)
 
 void keydown(char key, int down)
 {
-	printf("key '%c' down %d\n", key, down);
+	keystatus[key] = down;
 }
 
 int main()
@@ -412,6 +413,11 @@ int main()
 	xdim = 320;
 	ydim = 200;
 	blastcol = 0;
+
+	long clockspeed = 1;
+
+	for (int i = 0; i < sizeof(keystatus) / sizeof(keystatus[0]); ++i)
+		keystatus[i] = 0;
 
 	gfx_init(xdim, ydim);
 
@@ -458,16 +464,18 @@ int main()
 
 		if (keystatus[0x4e] > 0) horiz += clockspeed;
 		if (keystatus[0x4a] > 0) horiz -= clockspeed;
-		if (keystatus[0x1e] > 0)
+		*/
+		if (keystatus['a'] > 0)
 		{
-			posz -= (clockspeed<<(keystatus[0x2a]+8));
+			posz -= (clockspeed<<(keystatus[GFX_SHIFT]+8));
 			if (posz < 2048) posz = 2048;
 		}
-		if (keystatus[0x2c] > 0)
+		if (keystatus['z'] > 0)
 		{
-			posz += (clockspeed<<(keystatus[0x2a]+8));
+			posz += (clockspeed<<(keystatus[GFX_SHIFT]+8));
 			if (posz >= 1048576-4096-2048) posz = 1048575-4096-2048;
 		}
+		/*
 		if (keystatus[0x9d] == 0)
 		{
 			if (keystatus[0xcb] > 0) angvel = -16;
@@ -480,11 +488,13 @@ int main()
 		}
 		if (keystatus[0xc8] > 0) vel = 12L;
 		if (keystatus[0xd0] > 0) vel = -12L;
-		if (keystatus[0x2a] > 0)
+		*/
+		if (keystatus[GFX_SHIFT] > 0)
 		{
 			vel <<= 1;
 			svel <<= 1;
 		}
+
 		if (angvel != 0)
 		{
 			ang += ((angvel*((short int)clockspeed))>>3);
@@ -499,7 +509,6 @@ int main()
 			posx &= 0x3ffffff;
 			posy &= 0x3ffffff;
 		}
-		*/
 
 		long j = 16000;
 
